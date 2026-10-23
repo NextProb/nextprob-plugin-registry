@@ -234,6 +234,77 @@ test('a non-maintainer cannot register a new publisher or namespace', () => {
   }
 });
 
+test('native plugins cannot depend on subprocess plugins through the PR validator', () => {
+  function createDependencyRepository({ targetSubprocess }) {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'nextprob-deps-'));
+    write(root, 'owners.json', owners);
+    write(root, 'schemas/plugin.schema.json', { $schema: 'https://json-schema.org/draft/2020-12/schema' });
+    const target = {
+      id: 'community.beta',
+      name: 'Beta',
+      description: 'Beta',
+      version: '1.0.0',
+      apiVersion: 1,
+      nextprob: '>=0.4.0 <1.0.0',
+      platforms: ['linux-x64'],
+    };
+    if (targetSubprocess) target.hooks = [{ event: 'workspace.opened', command: 'node', args: ['hook.js'] }];
+    else target.main = 'main.cjs';
+    write(root, 'plugins/community.beta/extension.json', target);
+    write(root, 'plugins/community.beta/metadata.json', metadata('Beta plugin'));
+    write(root, 'plugins/community.beta/README.md', '# Beta\n');
+    write(root, 'plugins/community.beta/LICENSE', 'MIT\n');
+    if (!targetSubprocess) write(root, 'plugins/community.beta/main.cjs', 'module.exports = {};\n');
+
+    write(root, 'plugins/community.alpha/extension.json', {
+      id: 'community.alpha',
+      name: 'Alpha',
+      description: 'Alpha',
+      version: '1.0.0',
+      apiVersion: 1,
+      nextprob: '>=0.4.0 <1.0.0',
+      platforms: ['linux-x64'],
+      main: 'main.cjs',
+      dependencies: ['community.beta'],
+      dependencyVersions: { 'community.beta': '^1.0.0' },
+    });
+    write(root, 'plugins/community.alpha/metadata.json', metadata());
+    write(root, 'plugins/community.alpha/README.md', '# Alpha\n');
+    write(root, 'plugins/community.alpha/LICENSE', 'MIT\n');
+    write(root, 'plugins/community.alpha/main.cjs', 'module.exports = {};\n');
+
+    const mustGit = (...args) => {
+      const result = spawnSync('git', args, { cwd: root, encoding: 'utf8' });
+      assert.equal(result.status, 0, result.stderr || result.stdout);
+      return result.stdout.trim();
+    };
+    mustGit('init', '-b', 'main');
+    mustGit('config', 'user.name', 'Test');
+    mustGit('config', 'user.email', 'test@example.com');
+    mustGit('config', 'commit.gpgsign', 'false');
+    mustGit('add', '-A');
+    mustGit('commit', '-m', 'dependencies');
+    return { root, validate: () => spawnSync(process.execPath, [SCRIPT, '--all', '--no-tags'], { cwd: root, encoding: 'utf8' }) };
+  }
+
+  const rejected = createDependencyRepository({ targetSubprocess: true });
+  try {
+    const result = rejected.validate();
+    assert.equal(result.status, 1, result.stderr || result.stdout);
+    assert.match(result.stderr, /community\.alpha \(native\) cannot depend on subprocess plugin community\.beta; native activation supports native dependencies only/);
+  } finally {
+    fs.rmSync(rejected.root, { recursive: true, force: true });
+  }
+
+  const accepted = createDependencyRepository({ targetSubprocess: false });
+  try {
+    const result = accepted.validate();
+    assert.equal(result.status, 0, result.stderr || result.stdout);
+  } finally {
+    fs.rmSync(accepted.root, { recursive: true, force: true });
+  }
+});
+
 test('authorization rejects unknown and unauthorized authors', () => {
   const repository = createRepository();
   try {

@@ -1,0 +1,46 @@
+{
+  "id": "nextprob.export-bulk",
+  "name": "Export Bulk",
+  "description": "Exports multiple notes together as HTML, PDF, Markdown, or plain text.",
+  "version": "1.0.0",
+  "nextprob": ">=0.4.0 <1.0.0",
+  "platforms": [
+    "darwin-arm64",
+    "darwin-x64",
+    "linux-arm64",
+    "linux-x64",
+    "win32-arm64",
+    "win32-x64"
+  ],
+  "main": "main.cjs",
+  "dependencies": [
+    "nextprob.export-engine",
+    "nextprob.export-html",
+    "nextprob.export-pdf",
+    "nextprob.export-markdown",
+    "nextprob.export-plaintext"
+  ],
+  "dependencyVersions": {
+    "nextprob.export-engine": ">=1.0.0 <2.0.0",
+    "nextprob.export-html": ">=1.0.0 <2.0.0",
+    "nextprob.export-pdf": ">=1.0.0 <2.0.0",
+    "nextprob.export-markdown": ">=1.0.0 <2.0.0",
+    "nextprob.export-plaintext": ">=1.0.0 <2.0.0"
+  },
+  "ipc": {
+    "handle": [
+      "export:bulk"
+    ],
+    "on": [
+      "export:bulk-cancel"
+    ],
+    "send": [
+      "export:bulk-progress"
+    ]
+  },
+  "renderer": "renderer.js",
+  "styles": [
+    "renderer.css"
+  ],
+  "apiVersion": 1
+}

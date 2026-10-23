@@ -1,0 +1,12 @@
+{
+  "publisher": "nextprob",
+  "license": "AGPL-3.0-only",
+  "categories": [
+    "export"
+  ],
+  "summary": "Saves notes as HTML files, including a single self-contained file with inlined styles, scripts, and media.",
+  "displayName": "Export HTML",
+  "documentation": "README.md",
+  "source": "https://github.com/NextProb/nextprob-plugin-registry/tree/main/plugins/nextprob.export-html",
+  "releaseNotes": "Initial registry release."
+}

@@ -1,0 +1,12 @@
+{
+  "publisher": "nextprob",
+  "license": "AGPL-3.0-only",
+  "categories": [
+    "export"
+  ],
+  "summary": "Exports a folder or workspace of notes into a single ZIP archive as HTML, PDF, Markdown, or plain text.",
+  "displayName": "Export Bulk",
+  "documentation": "README.md",
+  "source": "https://github.com/NextProb/nextprob-plugin-registry/tree/main/plugins/nextprob.export-bulk",
+  "releaseNotes": "Initial registry release."
+}
