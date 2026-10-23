@@ -1,8 +1,8 @@
 {
   "name": "@nextprob/export-bulk",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": false,
-  "license": "AGPL-3.0-only",
+  "license": "MIT",
   "main": "main.cjs",
   "dependencies": {
     "archiver": "7.0.1"

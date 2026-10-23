@@ -2,7 +2,7 @@
   "id": "nextprob.export-markdown",
   "name": "Export Markdown",
   "description": "Converts notes to portable Markdown files.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "nextprob": ">=0.4.0 <1.0.0",
   "platforms": [
     "darwin-arm64",

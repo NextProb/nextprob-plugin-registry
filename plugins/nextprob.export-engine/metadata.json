@@ -1,6 +1,6 @@
 {
   "publisher": "nextprob",
-  "license": "AGPL-3.0-only",
+  "license": "MIT",
   "categories": [
     "export"
   ],
@@ -8,5 +8,5 @@
   "displayName": "Export Engine",
   "documentation": "README.md",
   "source": "https://github.com/NextProb/nextprob-plugin-registry/tree/main/plugins/nextprob.export-engine",
-  "releaseNotes": "Fix the Export Note as… picker to list only registered export formats and show an empty state when no format providers are installed."
+  "releaseNotes": "Relicense this official plugin under the MIT License."
 }

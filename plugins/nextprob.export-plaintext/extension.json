@@ -2,7 +2,7 @@
   "id": "nextprob.export-plaintext",
   "name": "Export Plain Text",
   "description": "Saves the text of your notes as plain text files.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "nextprob": ">=0.4.0 <1.0.0",
   "platforms": [
     "darwin-arm64",

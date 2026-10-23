@@ -1,6 +1,6 @@
 {
   "publisher": "nextprob",
-  "license": "AGPL-3.0-only",
+  "license": "MIT",
   "categories": [
     "publishing"
   ],
@@ -8,5 +8,5 @@
   "displayName": "Publishing",
   "documentation": "README.md",
   "source": "https://github.com/NextProb/nextprob-plugin-registry/tree/main/plugins/nextprob.publishing",
-  "releaseNotes": "Initial marketplace release. Publish as a Link is self-contained and no longer depends on HTML Export or Export Engine."
+  "releaseNotes": "Relicense this official plugin under the MIT License."
 }

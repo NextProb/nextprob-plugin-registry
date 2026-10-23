@@ -4,9 +4,21 @@ This repository reviews plugin source, builds versioned packages, and publishes
 the signed catalog consumed by NextProb. Marketplace UI and installation live in
 the NextProb app repository and are out of scope here.
 
-By submitting a pull request you confirm you have the right to license the
-contribution under the plugin's declared license. The registry itself is
-AGPL-3.0 (see [LICENSE](LICENSE)); individual plugins carry their own `LICENSE`.
+The registry infrastructure and all official NextProb plugins are licensed under
+MIT (see [LICENSE](LICENSE)). Contributions to the infrastructure or official
+plugins must be submitted under MIT. Individual plugins carry their own `LICENSE`.
+
+Community plugin authors retain ownership and choose their plugin's license;
+MIT is recommended, subject to compatibility with any code and dependencies used.
+Adding a plugin here does not automatically apply the registry's MIT license.
+Third-party code, dependencies, and assets retain their original licenses and
+required notices. The NextProb application is licensed separately; publication
+here does not grant an exception to the application's license.
+
+By submitting a pull request you confirm that you have the right to license the
+contribution under these terms and the plugin's declared license, as applicable,
+and authorize the registry to build, package, sign, host, and redistribute it
+under those terms.
 
 ## Repository layout
 
@@ -105,13 +117,16 @@ protected by [`.github/CODEOWNERS`](.github/CODEOWNERS).
 
 - **Any distributable change requires a new, previously unused semantic version**
   in `extension.json` (and the matching `package.json` when present). This includes
-  implementation code, assets, entry points, dependencies, and any
-  `extension.json` change.
+  implementation code, assets, entry points, dependencies, plugin license changes,
+  and any `extension.json` change.
 - The new version must be greater than every existing release tag for that plugin.
   Tags are immutable; validation rejects reuse of an existing version.
 - **Metadata-only changes do not require a version bump.** Changes limited to
-  `metadata.json`, `README.md`, and `LICENSE` update the catalog metadata without
-  repackaging or republishing the existing version.
+  `metadata.json` and `README.md` update the catalog metadata without repackaging
+  or republishing the existing version, unless they change the declared license.
+- **License changes require a version bump.** Update `LICENSE`, `metadata.license`,
+  and `package.json` (including the lockfile's root package when present) together.
+  Publish a new version containing the new terms; preserve existing tags and assets.
 - Metadata-only edits must not alter what the published package executes. If in
   doubt, bump the version.
 

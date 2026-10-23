@@ -2,7 +2,7 @@
   "id": "nextprob.export-pdf",
   "name": "Export PDF",
   "description": "Saves notes as PDF documents.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "nextprob": ">=0.4.0 <1.0.0",
   "platforms": [
     "darwin-arm64",

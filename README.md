@@ -125,6 +125,19 @@ bounded file count and size).
 Report vulnerabilities through GitHub's private security advisory; see
 [SECURITY.md](SECURITY.md). Key rotation policy lives in `keys/README.md`.
 
+## Licensing
+
+The registry infrastructure and all official NextProb plugins are licensed under
+the [MIT License](LICENSE), copyright 2026 Helicase Space LLC. Each plugin includes
+its own `LICENSE`, and its marketplace metadata declares the applicable license.
+
+Community plugins retain their authors' ownership and declared licenses; adding a
+plugin to this registry does not automatically license it under MIT. Third-party
+code, dependencies, and assets retain their original licenses and required notices.
+
+The NextProb application is licensed separately. This repository's MIT license does
+not change the application's license or grant an exception to it.
+
 ## Links
 
 - [CONTRIBUTING.md](CONTRIBUTING.md) — submission and review process

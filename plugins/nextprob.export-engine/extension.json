@@ -2,7 +2,7 @@
   "id": "nextprob.export-engine",
   "name": "Export Engine",
   "description": "Provides shared export tools and the export menu used by other extensions.",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "nextprob": ">=0.4.0 <1.0.0",
   "platforms": [
     "darwin-arm64",

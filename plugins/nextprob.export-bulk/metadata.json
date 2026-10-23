@@ -1,6 +1,6 @@
 {
   "publisher": "nextprob",
-  "license": "AGPL-3.0-only",
+  "license": "MIT",
   "categories": [
     "export"
   ],
@@ -8,5 +8,5 @@
   "displayName": "Export Bulk",
   "documentation": "README.md",
   "source": "https://github.com/NextProb/nextprob-plugin-registry/tree/main/plugins/nextprob.export-bulk",
-  "releaseNotes": "Initial registry release."
+  "releaseNotes": "Relicense this official plugin under the MIT License."
 }

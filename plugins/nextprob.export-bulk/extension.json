@@ -2,7 +2,7 @@
   "id": "nextprob.export-bulk",
   "name": "Export Bulk",
   "description": "Exports multiple notes together as HTML, PDF, Markdown, or plain text.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "nextprob": ">=0.4.0 <1.0.0",
   "platforms": [
     "darwin-arm64",

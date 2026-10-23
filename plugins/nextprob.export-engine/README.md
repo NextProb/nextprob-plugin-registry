@@ -43,4 +43,4 @@ retained by the app but is no longer the source of truth.
 
 ## License
 
-AGPL-3.0-only. See [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).
