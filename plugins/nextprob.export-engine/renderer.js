@@ -1,15 +1,18 @@
 window.ExtensionPackages.register('nextprob.export-engine', (api) => {
 const { showToast, TabState, ICONS } = api;
-function listen(target, event, handler, options) {
-  target.addEventListener(event, handler, options);
-  api.onDispose(() => target.removeEventListener(event, handler, options));
-}
 api = { ...api };
 for (const name of ['contributeMenu', 'registerCommand', 'registerKeybinding', 'contributeIndicator', 'contributeSettings', 'registerService', 'onProjectSurfaceChanged']) {
   const register = api[name];
   if (register) api[name] = (...args) => { const dispose = register(...args); api.onDispose(dispose); return dispose; };
 }
 const formatProviders = new Map();
+const EXPORT_FORMAT_ORDER = ['pdf', 'markdown', 'plaintext', 'html'];
+const EXPORT_FORMAT_LABELS = new Map([
+  ['pdf', 'PDF'],
+  ['markdown', 'Markdown (.md)'],
+  ['plaintext', 'Plain Text (.txt)'],
+  ['html', 'HTML (copy)'],
+]);
 async function exportNoteAs(filePath, format) {
   try {
     const provider = formatProviders.get(format);
@@ -29,7 +32,11 @@ async function exportNoteAs(filePath, format) {
   }
 }
 
-api.onDispose(() => document.getElementById("export-format-picker")?.remove());
+let closeActivePicker = null;
+api.onDispose(() => {
+  if (closeActivePicker) closeActivePicker();
+  document.getElementById("export-format-picker")?.remove();
+});
 function showExportFormatPicker() {
   const panel = TabState.getFocusedPanel();
   const targetPanel = panel || TabState.getState().panels.find(p => p.activeTabId);
@@ -44,48 +51,79 @@ function showExportFormatPicker() {
   }
   const filePath = activeTab.filePath;
 
-  document.getElementById('export-format-picker')?.remove();
+  if (closeActivePicker) closeActivePicker();
 
   const picker = document.createElement('div');
   picker.id = 'export-format-picker';
   picker.className = 'export-format-picker';
-  picker.innerHTML =
-    '<div class="export-format-picker-title">Export Note as\u2026</div>' +
-    '<button data-fmt="pdf">PDF</button>' +
-    '<button data-fmt="markdown">Markdown (.md)</button>' +
-    '<button data-fmt="plaintext">Plain Text (.txt)</button>' +
-    '<button data-fmt="html">HTML (copy)</button>' +
-    '<button class="export-format-picker-cancel">Cancel</button>';
 
-  picker.querySelectorAll('button[data-fmt]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      picker.remove();
-      document.removeEventListener('keydown', onPickerKeydown);
-      exportNoteAs(filePath, btn.dataset.fmt);
-    });
-  });
+  const title = document.createElement('div');
+  title.className = 'export-format-picker-title';
+  title.textContent = 'Export Note as\u2026';
+  picker.appendChild(title);
 
-  picker.querySelector('.export-format-picker-cancel').addEventListener('click', () => {
-    picker.remove();
-    document.removeEventListener('keydown', onPickerKeydown);
-  });
+  const registeredFormats = [...formatProviders.keys()];
+  const orderedFormats = [
+    ...EXPORT_FORMAT_ORDER.filter(format => formatProviders.has(format)),
+    ...registeredFormats.filter(format => !EXPORT_FORMAT_ORDER.includes(format)),
+  ];
 
-  function onPickerKeydown(e) {
-    if (e.key === 'Escape') {
-      picker.remove();
-      document.removeEventListener('keydown', onPickerKeydown);
+  if (orderedFormats.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'export-format-picker-empty';
+    empty.textContent = 'No export formats are installed. Install or enable an export format plugin in Settings \u2192 Plugins.';
+    picker.appendChild(empty);
+  } else {
+    for (const format of orderedFormats) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.dataset.fmt = format;
+      button.textContent = EXPORT_FORMAT_LABELS.has(format) ? EXPORT_FORMAT_LABELS.get(format) : format;
+      button.addEventListener('click', () => {
+        close();
+        exportNoteAs(filePath, format);
+      });
+      picker.appendChild(button);
     }
   }
-  listen(document, 'keydown', onPickerKeydown);
 
-  setTimeout(() => {
-    listen(document, 'mousedown', function dismiss(e) {
-      if (!picker.contains(e.target)) {
-        picker.remove();
-        document.removeEventListener('keydown', onPickerKeydown);
-        document.removeEventListener('mousedown', dismiss);
-      }
-    });
+  const cancel = document.createElement('button');
+  cancel.type = 'button';
+  cancel.className = 'export-format-picker-cancel';
+  cancel.textContent = 'Cancel';
+  cancel.addEventListener('click', close);
+  picker.appendChild(cancel);
+
+  let closed = false;
+  let dismissTimer = null;
+
+  function onPickerKeydown(e) {
+    if (e.key === 'Escape') close();
+  }
+
+  function onDocumentMousedown(e) {
+    if (!picker.contains(e.target)) close();
+  }
+
+  function close() {
+    if (closed) return;
+    closed = true;
+    if (dismissTimer !== null) {
+      clearTimeout(dismissTimer);
+      dismissTimer = null;
+    }
+    document.removeEventListener('keydown', onPickerKeydown);
+    document.removeEventListener('mousedown', onDocumentMousedown);
+    picker.remove();
+    if (closeActivePicker === close) closeActivePicker = null;
+  }
+
+  closeActivePicker = close;
+
+  document.addEventListener('keydown', onPickerKeydown);
+  dismissTimer = setTimeout(() => {
+    dismissTimer = null;
+    if (!closed) document.addEventListener('mousedown', onDocumentMousedown);
   }, 0);
 
   document.body.appendChild(picker);

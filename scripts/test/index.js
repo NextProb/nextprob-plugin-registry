@@ -8,3 +8,4 @@ import './catalog.test.mjs';
 import './publish.test.mjs';
 import './github.test.mjs';
 import './publishing-plugin.test.mjs';
+import './export-engine-picker.test.mjs';
