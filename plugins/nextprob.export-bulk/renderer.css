@@ -1,0 +1,81 @@
+/* ─── Bulk Export (feature 106) ─────────────────────────────────────────────── */
+
+.bulk-export-banner {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-input);
+  color: var(--text-normal);
+  font-size: var(--typescale-label-md-size);
+  padding: var(--spacing-2) var(--spacing-4);
+  border-radius: 6px;
+  border: 1px solid var(--ghost-border);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  white-space: nowrap;
+  box-shadow: var(--ambient-shadow);
+}
+
+.bulk-export-banner-cancel {
+  background: none;
+  border: 1px solid var(--text-dim);
+  color: var(--text-dim);
+  border-radius: 4px;
+  padding: var(--spacing-1) var(--spacing-2);
+  cursor: pointer;
+  font-size: var(--typescale-label-sm-size);
+}
+
+.bulk-export-banner-cancel:hover {
+  border-color: var(--text-normal);
+  color: var(--text-normal);
+}
+
+.bulk-export-picker {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--bg-input);
+  border: 1px solid var(--ghost-border);
+  border-radius: 8px;
+  padding: var(--spacing-4);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1-5);
+  min-width: 210px;
+  box-shadow: var(--ambient-shadow);
+}
+
+.bulk-export-picker-title {
+  font-size: var(--typescale-label-md-size);
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--spacing-1);
+}
+
+.bulk-export-picker button {
+  background: none;
+  border: 1px solid var(--ghost-border);
+  border-radius: 4px;
+  color: var(--text-normal);
+  padding: var(--spacing-1-5) var(--spacing-3);
+  cursor: pointer;
+  font-size: var(--typescale-label-md-size);
+  text-align: left;
+}
+
+.bulk-export-picker button:hover {
+  background: var(--bg-hover);
+}
+
+.bulk-export-picker-cancel {
+  color: var(--text-dim) !important;
+  margin-top: var(--spacing-1);
+}

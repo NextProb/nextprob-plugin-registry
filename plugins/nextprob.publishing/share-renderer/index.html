@@ -1,0 +1,55 @@
+<!doctype html>
+<!-- notes-app-share-renderer -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Shared note</title>
+<meta name="color-scheme" content="dark light">
+<style>
+  html,body{margin:0;height:100%;background:#181c1c;color:#e0e0e0;font:14px system-ui,-apple-system,sans-serif}
+  @media (prefers-color-scheme: light){
+    html,body{background:#ffffff;color:#121e1d}
+  }
+  #frame{display:block;border:0;width:100%;height:100%}
+  #status{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center}
+</style>
+</head>
+<body>
+<div id="status">Loading…</div>
+<script>
+(async () => {
+  const status = document.getElementById('status');
+  const fail = (msg) => { status.textContent = msg; };
+
+  const id = new URLSearchParams(location.search).get('id');
+  if (!id || !/^[a-f0-9]{20,40}$/i.test(id)) return fail('Missing or invalid share id.');
+
+  let html;
+  try {
+    const r = await fetch(`https://api.github.com/gists/${id}`, {
+      headers: { 'Accept': 'application/vnd.github+json' }
+    });
+    if (!r.ok) return fail(r.status === 404 ? 'Share not found.' : `Could not load share (HTTP ${r.status}).`);
+    const gist = await r.json();
+    const files = Object.values(gist.files);
+    const file = files.find(f => /\.html?$/i.test(f.filename)) || files[0];
+    if (!file) return fail('Share is empty.');
+    html = file.truncated ? await (await fetch(file.raw_url)).text() : file.content;
+  } catch (e) {
+    return fail('Network error loading share.');
+  }
+
+  const iframe = document.createElement('iframe');
+  iframe.id = 'frame';
+  iframe.setAttribute('sandbox', 'allow-scripts');
+  iframe.setAttribute('allow', 'fullscreen; pointer-lock');
+  iframe.referrerPolicy = 'no-referrer';
+  iframe.src = URL.createObjectURL(new Blob([html], { type: 'text/html;charset=utf-8' }));
+  status.remove();
+  document.body.appendChild(iframe);
+})();
+</script>
+</body>
+</html>

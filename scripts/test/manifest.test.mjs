@@ -149,6 +149,35 @@ test('dependency cycles and unknown dependencies are rejected', () => {
   assert.throws(() => validateDependencyGraph(unsatisfied), /requires/);
 });
 
+test('native plugins cannot depend on subprocess plugins', () => {
+  const plugin = (version, dependencies, dependencyVersions = {}, execution) => ({
+    manifest: { version, dependencies, dependencyVersions, execution },
+  });
+  const nativeToSubprocess = new Map([
+    ['community.native', plugin('1.0.0', ['community.worker'], {}, 'native')],
+    ['community.worker', plugin('1.0.0', [], {}, 'subprocess')],
+  ]);
+  assert.throws(
+    () => validateDependencyGraph(nativeToSubprocess),
+    /community\.native \(native\) cannot depend on subprocess plugin community\.worker; native activation supports native dependencies only/,
+  );
+  const nativeToNative = new Map([
+    ['community.native', plugin('1.0.0', ['community.helper'], {}, 'native')],
+    ['community.helper', plugin('1.0.0', [], {}, 'native')],
+  ]);
+  assert.doesNotThrow(() => validateDependencyGraph(nativeToNative));
+  const subprocessToNative = new Map([
+    ['community.worker', plugin('1.0.0', ['community.helper'], {}, 'subprocess')],
+    ['community.helper', plugin('1.0.0', [], {}, 'native')],
+  ]);
+  assert.doesNotThrow(() => validateDependencyGraph(subprocessToNative));
+  const undeclaredToSubprocess = new Map([
+    ['community.native', plugin('1.0.0', ['community.worker'])],
+    ['community.worker', plugin('1.0.0', [], {}, 'subprocess')],
+  ]);
+  assert.doesNotThrow(() => validateDependencyGraph(undeclaredToSubprocess));
+});
+
 test('official namespaces require official publishers', () => {
   const owners = {
     schemaVersion: 1,

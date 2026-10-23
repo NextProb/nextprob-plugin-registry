@@ -64,6 +64,15 @@ build step; its `version` must match `extension.json`, and a committed
 - [`schemas/owners.schema.json`](schemas/owners.schema.json) — `owners.json`
 - [`schemas/catalog.schema.json`](schemas/catalog.schema.json) — generated catalog
 
+## Dependency semantics
+
+- Registry `dependencies` constrain installation and version selection only; they
+  do not grant cross-process API access or automatically enable subprocess services
+  across workspaces.
+- A native plugin may depend only on other native plugins. Native activation
+  supports native dependencies only, so native-to-subprocess dependencies are
+  rejected.
+
 ## Ownership and the official namespace
 
 Reviewed ownership is declared in [`owners.json`](owners.json). It defines

@@ -122,6 +122,12 @@ protected by [`.github/CODEOWNERS`](.github/CODEOWNERS).
 - `dependencyVersions` maps those ids to semver ranges. It must not name unknown
   ids, and each range must satisfy the dependency plugin's current version.
 - Dependency cycles are rejected.
+- A **native** plugin may depend only on other **native** plugins. Native
+  activation supports native dependencies only, so native-to-subprocess
+  dependencies are rejected.
+- Registry `dependencies` constrain installation and version selection only. They
+  do not grant cross-process API access or automatically enable subprocess
+  services across workspaces.
 - Runtime npm dependencies must use **exact versions** (no `^`, `~`, `*`, or
   ranges) and be committed with `package-lock.json` (`lockfileVersion` 3). Install
   with `npm ci --ignore-scripts`; do not rely on install scripts. Native

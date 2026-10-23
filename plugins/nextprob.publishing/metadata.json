@@ -1,0 +1,12 @@
+{
+  "publisher": "nextprob",
+  "license": "AGPL-3.0-only",
+  "categories": [
+    "publishing"
+  ],
+  "summary": "Publishes notes as self-contained GitHub-backed links, with no export plugin or first-use download required.",
+  "displayName": "Publishing",
+  "documentation": "README.md",
+  "source": "https://github.com/NextProb/nextprob-plugin-registry/tree/main/plugins/nextprob.publishing",
+  "releaseNotes": "Initial marketplace release. Publish as a Link is self-contained and no longer depends on HTML Export or Export Engine."
+}

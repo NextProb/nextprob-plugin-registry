@@ -284,6 +284,9 @@ export function validateDependencyGraph(plugins) {
     for (const dependency of manifest.dependencies) {
       const range = manifest.dependencyVersions[dependency] || '*';
       const target = plugins.get(dependency);
+      if (manifest.execution === 'native' && target.manifest.execution === 'subprocess') {
+        throw new Error(`${id} (native) cannot depend on subprocess plugin ${dependency}; native activation supports native dependencies only`);
+      }
       if (!satisfies(target.manifest.version, range)) throw new Error(`${id} requires ${dependency} ${range}, but the registry has ${target.manifest.version}`);
     }
   }

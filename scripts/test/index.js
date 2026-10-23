@@ -7,3 +7,4 @@ import './package.test.mjs';
 import './catalog.test.mjs';
 import './publish.test.mjs';
 import './github.test.mjs';
+import './publishing-plugin.test.mjs';

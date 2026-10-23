@@ -73,7 +73,7 @@
         "type": "string",
         "pattern": "^(?!(?:[Cc][Oo][Nn]|[Pp][Rr][Nn]|[Aa][Uu][Xx]|[Nn][Uu][Ll]|[Cc][Oo][Mm][1-9]|[Ll][Pp][Tt][1-9])(?:\\.|$))(?!.*\\.$)[a-zA-Z0-9][a-zA-Z0-9._-]{0,79}$"
       },
-      "description": "Ids of other registry plugins this plugin depends on. Dependencies must exist in the registry and the dependency graph must not contain cycles."
+      "description": "Ids of other registry plugins this plugin depends on. Dependencies must exist in the registry, the dependency graph must not contain cycles, and native plugins may depend only on native plugins."
     },
     "dependencyVersions": {
       "type": "object",
