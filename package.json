@@ -1,0 +1,15 @@
+{
+  "name": "nextprob-plugin-registry",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "validate": "node scripts/validate.mjs --all --no-tags",
+    "validate:strict": "node scripts/validate.mjs --all",
+    "test": "node --test scripts/test",
+    "package": "node scripts/package.mjs"
+  }
+}

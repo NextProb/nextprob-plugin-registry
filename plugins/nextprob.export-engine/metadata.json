@@ -1,0 +1,12 @@
+{
+  "publisher": "nextprob",
+  "license": "AGPL-3.0-only",
+  "categories": [
+    "export"
+  ],
+  "summary": "Provides shared export tools and the export menu used by other extensions.",
+  "displayName": "Export Engine",
+  "documentation": "README.md",
+  "source": "https://github.com/NextProb/nextprob-plugin-registry/tree/main/plugins/nextprob.export-engine",
+  "releaseNotes": "Initial registry release."
+}

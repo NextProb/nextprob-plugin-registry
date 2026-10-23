@@ -1,0 +1,16 @@
+# CODEOWNERS for the NextProb plugin registry.
+#
+# The default owner reviews all plugin submissions. Ownership definitions,
+# schemas, packaging/validation scripts, workflows, signing-key material, and
+# the official `nextprob.*` namespace require maintainer review: changing any
+# of these can alter who may publish, how artifacts are built, or how the
+# signed catalog is trusted.
+
+* @toutkit
+
+/owners.json @toutkit
+/schemas/ @toutkit
+/scripts/ @toutkit
+/.github/ @toutkit
+/keys/ @toutkit
+/plugins/nextprob.* @toutkit

@@ -1,0 +1,117 @@
+name: Validate plugins
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "24"
+
+      - name: Validate changes and write plan
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          AUTHOR: ${{ github.event.pull_request.user.login }}
+        run: |
+          set -euo pipefail
+          plan="$RUNNER_TEMP/plan.json"
+          args=(--plan "$plan")
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            args+=(--all --allow-published)
+          else
+            args+=(--base "$BASE_SHA" --head "$HEAD_SHA")
+            if [ -n "$AUTHOR" ]; then
+              args+=(--author "$AUTHOR")
+            fi
+          fi
+          node scripts/validate.mjs "${args[@]}"
+          if [ ! -s "$plan" ]; then
+            printf '%s\n' '{"base":null,"head":null,"changed":[]}' > "$plan"
+          fi
+
+      - name: Upload validation plan
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: validation-plan
+          path: ${{ runner.temp }}/plan.json
+          if-no-files-found: error
+          retention-days: 7
+
+  package:
+    name: package
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out pull request head
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "24"
+
+      - name: Download validation plan
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: validation-plan
+          path: ${{ runner.temp }}/plan
+
+      - name: Package changed plugins
+        env:
+          PLAN_FILE: ${{ runner.temp }}/plan/plan.json
+          SOURCE_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          packages="$RUNNER_TEMP/packages"
+          targets="$RUNNER_TEMP/targets.tsv"
+          mkdir -p "$packages"
+          : > "$targets"
+          if [ -s "$PLAN_FILE" ]; then
+            PLAN_FILE="$PLAN_FILE" node -e 'const fs = require("node:fs"); const plan = JSON.parse(fs.readFileSync(process.env.PLAN_FILE, "utf8")); for (const entry of plan.changed ?? []) { if (entry && entry.action === "publish" && entry.id && entry.version) { process.stdout.write(`${entry.id}\t${entry.version}\n`); } }' > "$targets"
+          fi
+          while IFS=$'\t' read -r id version; do
+            if [ -z "${id:-}" ] || [ -z "${version:-}" ]; then
+              continue
+            fi
+            node scripts/package.mjs --plugin "$id" --version "$version" --source-commit "$SOURCE_COMMIT" --out "$packages"
+          done < "$targets"
+          if [ -z "$(ls -A "$packages")" ]; then
+            echo "No publish actions in plan; nothing to package."
+          fi
+
+      - name: Upload packages
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: plugin-packages
+          path: ${{ runner.temp }}/packages
+          if-no-files-found: warn
+          retention-days: 7

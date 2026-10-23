@@ -1,0 +1,31 @@
+{
+  "id": "nextprob.export-markdown",
+  "name": "Export Markdown",
+  "description": "Converts notes to portable Markdown files.",
+  "version": "1.0.0",
+  "nextprob": ">=0.4.0 <1.0.0",
+  "platforms": [
+    "darwin-arm64",
+    "darwin-x64",
+    "linux-arm64",
+    "linux-x64",
+    "win32-arm64",
+    "win32-x64"
+  ],
+  "main": "main.cjs",
+  "dependencies": [
+    "nextprob.export-engine"
+  ],
+  "dependencyVersions": {
+    "nextprob.export-engine": ">=1.0.0 <2.0.0"
+  },
+  "ipc": {
+    "handle": [
+      "export:save-markdown"
+    ],
+    "on": [],
+    "send": []
+  },
+  "renderer": "renderer.js",
+  "apiVersion": 1
+}

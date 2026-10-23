@@ -1,0 +1,30 @@
+{
+  "id": "nextprob.export-engine",
+  "name": "Export Engine",
+  "description": "Provides shared export tools and the export menu used by other extensions.",
+  "version": "1.0.0",
+  "nextprob": ">=0.4.0 <1.0.0",
+  "platforms": [
+    "darwin-arm64",
+    "darwin-x64",
+    "linux-arm64",
+    "linux-x64",
+    "win32-arm64",
+    "win32-x64"
+  ],
+  "main": "main.cjs",
+  "dependencies": [],
+  "ipc": {
+    "handle": [
+      "export:note",
+      "export:formats"
+    ],
+    "on": [],
+    "send": []
+  },
+  "renderer": "renderer.js",
+  "styles": [
+    "renderer.css"
+  ],
+  "apiVersion": 1
+}

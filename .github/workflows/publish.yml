@@ -1,0 +1,164 @@
+name: Publish catalog
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-catalog
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      has_packages: ${{ steps.package.outputs.has_packages }}
+    steps:
+      - name: Guard manual publication ref
+        if: ${{ github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main' }}
+        run: |
+          echo "Manual publication is only allowed from refs/heads/main (got $GITHUB_REF)." >&2
+          exit 1
+
+      - name: Check out merged commit
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "24"
+
+      - name: Validate changes and write plan
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+          BASE_SHA: ${{ github.event.before }}
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          plan="$RUNNER_TEMP/plan.json"
+          args=(--plan "$plan")
+          allow_published=false
+          if [ "$EVENT_NAME" = "workflow_dispatch" ] || [ "${RUN_ATTEMPT:-1}" -gt 1 ]; then
+            allow_published=true
+          fi
+          use_all=false
+          if [ "$EVENT_NAME" = "workflow_dispatch" ] || [ -z "${BASE_SHA:-}" ]; then
+            use_all=true
+          elif [[ "$BASE_SHA" =~ ^0+$ ]]; then
+            use_all=true
+          elif ! git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
+            use_all=true
+            echo "Base commit is not available locally; validating all plugins."
+          fi
+          if [ "$use_all" = "true" ]; then
+            args+=(--all)
+          else
+            args+=(--base "$BASE_SHA" --head "$HEAD_SHA")
+          fi
+          if [ "$allow_published" = "true" ]; then
+            args+=(--allow-published)
+          fi
+          node scripts/validate.mjs "${args[@]}"
+          if [ ! -s "$plan" ]; then
+            printf '%s\n' '{"base":null,"head":null,"changed":[]}' > "$plan"
+          fi
+
+      - name: Upload publication plan
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: publication-plan
+          path: ${{ runner.temp }}/plan.json
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Package plugins to publish
+        id: package
+        env:
+          PLAN_FILE: ${{ runner.temp }}/plan.json
+          SOURCE_COMMIT: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          packages="$RUNNER_TEMP/packages"
+          targets="$RUNNER_TEMP/targets.tsv"
+          mkdir -p "$packages"
+          : > "$targets"
+          if [ -s "$PLAN_FILE" ]; then
+            PLAN_FILE="$PLAN_FILE" node -e 'const fs = require("node:fs"); const plan = JSON.parse(fs.readFileSync(process.env.PLAN_FILE, "utf8")); for (const entry of plan.changed ?? []) { if (entry && entry.action === "publish" && entry.id && entry.version) { process.stdout.write(`${entry.id}\t${entry.version}\n`); } }' > "$targets"
+          fi
+          while IFS=$'\t' read -r id version; do
+            if [ -z "${id:-}" ] || [ -z "${version:-}" ]; then
+              continue
+            fi
+            node scripts/package.mjs --plugin "$id" --version "$version" --source-commit "$SOURCE_COMMIT" --out "$packages"
+          done < "$targets"
+          if [ -n "$(ls -A "$packages")" ]; then
+            echo "has_packages=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_packages=false" >> "$GITHUB_OUTPUT"
+            echo "No publish actions in plan; only catalog metadata may change."
+          fi
+
+      - name: Upload packages
+        if: steps.package.outputs.has_packages == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: plugin-packages
+          path: ${{ runner.temp }}/packages
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    name: publish
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    steps:
+      - name: Check out merged commit
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "24"
+
+      - name: Download publication plan
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: publication-plan
+          path: ${{ runner.temp }}/plan
+
+      - name: Download packages
+        if: needs.build.outputs.has_packages == 'true'
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: plugin-packages
+          path: ${{ runner.temp }}/packages
+
+      - name: Publish artifacts and update catalog
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CATALOG_SIGNING_KEY: ${{ secrets.CATALOG_SIGNING_KEY }}
+          SOURCE_COMMIT: ${{ github.sha }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          artifacts="$RUNNER_TEMP/packages"
+          plan="$RUNNER_TEMP/plan/plan.json"
+          mkdir -p "$artifacts"
+          node scripts/publish.mjs --artifacts "$artifacts" --source-commit "$SOURCE_COMMIT" --repo "$REPOSITORY" --plan "$plan"

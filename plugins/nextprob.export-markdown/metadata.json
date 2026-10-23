@@ -1,0 +1,12 @@
+{
+  "publisher": "nextprob",
+  "license": "AGPL-3.0-only",
+  "categories": [
+    "export"
+  ],
+  "summary": "Converts notes to portable Markdown files.",
+  "displayName": "Export Markdown",
+  "documentation": "README.md",
+  "source": "https://github.com/NextProb/nextprob-plugin-registry/tree/main/plugins/nextprob.export-markdown",
+  "releaseNotes": "Initial registry release."
+}
