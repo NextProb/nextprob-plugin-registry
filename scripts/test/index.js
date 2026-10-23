@@ -1,0 +1,9 @@
+import './semver.test.mjs';
+import './sign.test.mjs';
+import './zip.test.mjs';
+import './manifest.test.mjs';
+import './validate-plan.test.mjs';
+import './package.test.mjs';
+import './catalog.test.mjs';
+import './publish.test.mjs';
+import './github.test.mjs';

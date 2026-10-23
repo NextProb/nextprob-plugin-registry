@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "maintainers": ["toutkit"],
+  "officialNamespaces": ["nextprob"],
+  "publishers": {
+    "nextprob": {
+      "displayName": "NextProb",
+      "official": true,
+      "github": ["toutkit"],
+      "url": "https://github.com/NextProb"
+    }
+  },
+  "namespaces": {
+    "nextprob": "nextprob"
+  }
+}

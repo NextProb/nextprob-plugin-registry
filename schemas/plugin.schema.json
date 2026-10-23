@@ -1,0 +1,289 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/NextProb/nextprob-plugin-registry/main/schemas/plugin.schema.json",
+  "title": "NextProb plugin runtime manifest",
+  "description": "The reviewed runtime manifest stored as extension.json at the root of a plugin directory. Covers both native packages (main/renderer entry points) and subprocess extensions (hooks/commands/service). At least one entry point is required. The registry validator enforces additional rules that JSON Schema cannot express, including file existence, dependency resolution against other registry plugins, cycle detection, and platform coverage.",
+  "type": "object",
+  "required": ["id", "name", "version", "apiVersion", "nextprob", "platforms"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^(?!(?:[Cc][Oo][Nn]|[Pp][Rr][Nn]|[Aa][Uu][Xx]|[Nn][Uu][Ll]|[Cc][Oo][Mm][1-9]|[Ll][Pp][Tt][1-9])(?:\\.|$))(?!.*\\.$)[a-zA-Z0-9][a-zA-Z0-9._-]{0,79}$",
+      "description": "Stable plugin id. Portable folder name: 1-80 characters, first character alphanumeric, then letters, digits, dot, underscore, or hyphen. Windows reserved device names and trailing dots are rejected. Ids beginning with nextprob. are reserved for official plugins."
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "description": "Human-readable display name shown by the host."
+    },
+    "description": {
+      "type": "string",
+      "description": "Optional short explanation of the plugin."
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$",
+      "description": "Strict semantic version in x.y.z form. No leading v and no build metadata. Every distributable change requires a version that has never been published."
+    },
+    "apiVersion": {
+      "const": 1,
+      "description": "Plugin API version. The registry currently accepts only API version 1."
+    },
+    "nextprob": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Semantic version range of compatible NextProb application versions. Must be valid range syntax and must include 0.4.0 for current app compatibility."
+    },
+    "platforms": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "enum": ["darwin-arm64", "darwin-x64", "linux-arm64", "linux-x64", "win32-arm64", "win32-x64"]
+      },
+      "description": "Operating system and architecture targets supported by this package. Every advertised target must work."
+    },
+    "main": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$))[^\\u0000]+$",
+      "description": "Native entry point loaded by the app main process. Package-relative regular file with no absolute path, traversal, backslash, or NUL. The file must exist."
+    },
+    "renderer": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$))[^\\u0000]+$",
+      "description": "Native renderer entry point. Package-relative regular file with no absolute path, traversal, backslash, or NUL. The file must exist."
+    },
+    "styles": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$))[^\\u0000]+$"
+      },
+      "description": "Native renderer stylesheets. Each entry is a package-relative regular file that must exist."
+    },
+    "dependencies": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^(?!(?:[Cc][Oo][Nn]|[Pp][Rr][Nn]|[Aa][Uu][Xx]|[Nn][Uu][Ll]|[Cc][Oo][Mm][1-9]|[Ll][Pp][Tt][1-9])(?:\\.|$))(?!.*\\.$)[a-zA-Z0-9][a-zA-Z0-9._-]{0,79}$"
+      },
+      "description": "Ids of other registry plugins this plugin depends on. Dependencies must exist in the registry and the dependency graph must not contain cycles."
+    },
+    "dependencyVersions": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^(?!(?:[Cc][Oo][Nn]|[Pp][Rr][Nn]|[Aa][Uu][Xx]|[Nn][Uu][Ll]|[Cc][Oo][Mm][1-9]|[Ll][Pp][Tt][1-9])(?:\\.|$))(?!.*\\.$)[a-zA-Z0-9][a-zA-Z0-9._-]{0,79}$"
+      },
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "Semantic version ranges keyed by dependency plugin id. Keys must appear in dependencies, and ranges must satisfy the dependency plugin's current version."
+    },
+    "ipc": {
+      "type": "object",
+      "properties": {
+        "handle": {
+          "$ref": "#/$defs/channels"
+        },
+        "on": {
+          "$ref": "#/$defs/channels"
+        },
+        "send": {
+          "$ref": "#/$defs/channels"
+        }
+      },
+      "additionalProperties": false,
+      "description": "IPC channels declared by a native package. Channels must be non-empty, must not start with extensions:, and must not contain NUL."
+    },
+    "packaging": {
+      "type": "object",
+      "properties": {
+        "unpackedResources": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$))[^\\u0000]+$"
+          },
+          "description": "Package-relative files or directories that must remain outside the application archive."
+        }
+      },
+      "additionalProperties": false,
+      "description": "Native package build-resource declarations."
+    },
+    "hooks": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100,
+      "items": {
+        "$ref": "#/$defs/hook"
+      },
+      "description": "Subprocess hooks run after host events."
+    },
+    "commands": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100,
+      "items": {
+        "$ref": "#/$defs/command"
+      },
+      "description": "Subprocess commands invoked on demand by the user or a UI contribution."
+    },
+    "service": {
+      "type": "object",
+      "required": ["command"],
+      "properties": {
+        "command": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[^\\u0000]+$",
+          "description": "Executable to run for the persistent service."
+        },
+        "args": {
+          "$ref": "#/$defs/args"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Subprocess service that stays running while the extension is enabled in the active workspace."
+    },
+    "settings": {
+      "type": "object",
+      "description": "Default settings object. Values are arbitrary JSON and are overlaid by workspace-local user settings. This is not a secret store."
+    },
+    "contributes": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {
+        "$ref": "#/$defs/contribution"
+      },
+      "description": "UI contributions declared by a subprocess extension."
+    }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "anyOf": [
+        { "required": ["main"] },
+        { "required": ["renderer"] },
+        { "required": ["hooks"] },
+        { "required": ["commands"] },
+        { "required": ["service"] }
+      ],
+      "description": "At least one entry point is required: native via main or renderer, or subprocess via hooks, commands, or service."
+    }
+  ],
+  "$defs": {
+    "channels": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "pattern": "^(?!extensions:)[^\\u0000]+$"
+      }
+    },
+    "args": {
+      "type": "array",
+      "maxItems": 128,
+      "items": {
+        "type": "string",
+        "maxLength": 16384,
+        "pattern": "^[^\\u0000]*$"
+      },
+      "description": "Command arguments passed without shell interpolation. At most 128 entries, each at most 16,384 characters, with no NUL."
+    },
+    "hook": {
+      "type": "object",
+      "required": ["event", "command"],
+      "properties": {
+        "event": {
+          "enum": ["workspace.opened", "workspace.closing", "workspace.filesChanged", "note.opened"]
+        },
+        "command": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[^\\u0000]+$"
+        },
+        "args": {
+          "$ref": "#/$defs/args"
+        }
+      },
+      "additionalProperties": false
+    },
+    "command": {
+      "type": "object",
+      "required": ["id", "title", "command"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^(?!(?:[Cc][Oo][Nn]|[Pp][Rr][Nn]|[Aa][Uu][Xx]|[Nn][Uu][Ll]|[Cc][Oo][Mm][1-9]|[Ll][Pp][Tt][1-9])(?:\\.|$))(?!.*\\.$)[a-zA-Z0-9][a-zA-Z0-9._-]{0,79}$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "command": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[^\\u0000]+$"
+        },
+        "args": {
+          "$ref": "#/$defs/args"
+        }
+      },
+      "additionalProperties": false
+    },
+    "contribution": {
+      "type": "object",
+      "required": ["id", "zone", "title"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^(?!(?:[Cc][Oo][Nn]|[Pp][Rr][Nn]|[Aa][Uu][Xx]|[Nn][Uu][Ll]|[Cc][Oo][Mm][1-9]|[Ll][Pp][Tt][1-9])(?:\\.|$))(?!.*\\.$)[a-zA-Z0-9][a-zA-Z0-9._-]{0,79}$"
+        },
+        "zone": {
+          "enum": ["rightPanel", "sidebarFooter", "bottomBar", "sidebar", "noteMenu", "mainTab"]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "icon": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "command": {
+          "type": "string",
+          "pattern": "^(?!(?:[Cc][Oo][Nn]|[Pp][Rr][Nn]|[Aa][Uu][Xx]|[Nn][Uu][Ll]|[Cc][Oo][Mm][1-9]|[Ll][Pp][Tt][1-9])(?:\\.|$))(?!.*\\.$)[a-zA-Z0-9][a-zA-Z0-9._-]{0,79}$",
+          "description": "Id of a command declared by this extension."
+        },
+        "view": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$))[^\\u0000]+\\.html?$",
+          "description": "Package-relative HTML file rendered in a view zone. Required for view zones."
+        },
+        "when": {
+          "enum": ["note", "workspace"]
+        },
+        "order": {
+          "type": "number",
+          "minimum": -100000,
+          "maximum": 100000
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

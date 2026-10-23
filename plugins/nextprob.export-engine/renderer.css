@@ -1,0 +1,47 @@
+/* ─── Export format picker (feature 110) ─────────────────────────────────────── */
+
+.export-format-picker {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--bg-input);
+  border: 1px solid var(--ghost-border);
+  border-radius: 8px;
+  padding: var(--spacing-4);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1-5);
+  min-width: 210px;
+  box-shadow: var(--ambient-shadow);
+}
+
+.export-format-picker-title {
+  font-size: var(--typescale-label-md-size);
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--spacing-1);
+}
+
+.export-format-picker button {
+  background: none;
+  border: 1px solid var(--ghost-border);
+  border-radius: 4px;
+  color: var(--text-normal);
+  padding: var(--spacing-1-5) var(--spacing-3);
+  cursor: pointer;
+  font-size: var(--typescale-label-md-size);
+  text-align: left;
+}
+
+.export-format-picker button:hover {
+  background: var(--bg-hover);
+}
+
+.export-format-picker-cancel {
+  color: var(--text-dim) !important;
+  margin-top: var(--spacing-1);
+}
